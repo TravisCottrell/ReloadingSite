@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title%}Edit bullet{% endblock title%}
+
+{% block content %}
+<div class="container">
+  <form method="POST" class="form-group">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn btn-primary">Change</button>
+    <a class="btn btn-danger" href="{% url 'delete_bullet' bullet.pk %}" >Delete</a>
+    
+  </form>
+</div>
+{% endblock %}

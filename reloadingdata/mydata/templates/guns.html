@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title%}Guns List{% endblock title%}
+
+{% block content %}<br/>
+  <div class="container-fluid">
+  <h2>Guns</h2>
+    <a class="btn btn-secondary btn-sm" href="{% url 'add_gun' %}">add gun</a>
+    {% for gun in object_list %}
+      <ul >
+        <li><a href="{% url 'gun' gun.pk %}">{{gun.gun}}</a></li>
+      </ul>
+    {% endfor %}
+  </div>
+{% endblock %}
+
