@@ -2,7 +2,8 @@
 {% block title%}Edit data{% endblock title%}
 
 {% block content %}
-<div class="container">
+<div class="container"><br/>
+<a class="btn btn-secondary" href="{% url 'gun' gun.pk %}" >back to {{gun.gun}}</a>
   <form method="POST" class="form-group">
     {% csrf_token %}
     {{ form.as_p }}

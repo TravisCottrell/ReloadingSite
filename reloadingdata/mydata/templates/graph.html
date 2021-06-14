@@ -1,6 +1,16 @@
 {% extends "base.html" %}
 {% block title%}Graph{% endblock title%}
 
+{% block content %}
+<div class="container">
+    {% for b in bullet %}
+      <h1>{{b.bullet}} - {{b.powder}}</h1>                                 
+    {% endfor%}
+    <canvas id="myChart" ></canvas> 
+    <canvas id="myChart2" ></canvas> 
+</div>
+{% endblock %}
+
 {% block scripts%}
 <script>
 $(document).ready(function(){
@@ -9,19 +19,15 @@ $(document).ready(function(){
       type: 'line',
       data: { 
           labels: [
-                    {% for b in bullet %}
-                        {% for result in b.results.all %}
-                            '{{ result.charge}}',
-                        {% endfor%}
+                    {% for charge in chargelist %}
+                        '{{charge}}',
                     {% endfor%}
                 ],  
           datasets: [{
               label: 'MOA',
               data: [
-                    {% for b in bullet %}
-                        {% for result in b.results.all %}
-                            '{{ result.moa}}',
-                        {% endfor%}
+                    {% for moa in moalist %}
+                        '{{moa}}', 
                     {% endfor%}
               ],
               backgroundColor: [
@@ -54,14 +60,62 @@ $(document).ready(function(){
     }
   });
 });
-</script>
-{% endblock scripts%}
 
-{% block content %}
-<div class="container">
-    {% for b in bullet %}
-      <h1>{{b.bullet}} - {{b.powder}}</h1>                                 
-    {% endfor%}
-    <canvas id="myChart" ></canvas> 
-</div>
-{% endblock %}
+$(document).ready(function(){
+  var ctx = document.getElementById('myChart2').getContext('2d');
+  var myChart = new Chart(ctx, {
+      type: 'line',
+      data: { 
+          labels: [
+                    {% for charge in chargelist %}
+                        '{{charge}}',
+                    {% endfor%}
+                ],  
+          datasets: [{
+              label: 'Velocity',
+              data: [
+                    {% for velocity in velocitylist %}
+                        '{{velocity}}',   
+                    {% endfor%}
+              ],
+              backgroundColor: [
+                  'rgba(255, 99, 132, 0.2)',
+                  'rgba(54, 162, 235, 0.2)',
+                  'rgba(255, 206, 86, 0.2)',
+                  'rgba(75, 192, 192, 0.2)',
+                  'rgba(153, 102, 255, 0.2)',
+                  'rgba(255, 159, 64, 0.2)'
+              ],
+              borderColor: [
+                  'rgba(255, 99, 132, 1)',
+                  'rgba(54, 162, 235, 1)',
+                  'rgba(255, 206, 86, 1)',
+                  'rgba(75, 192, 192, 1)',
+                  'rgba(153, 102, 255, 1)',
+                  'rgba(255, 159, 64, 1)'
+              ],
+              borderWidth: 1
+          }]
+      },
+    options: {
+        scales: {
+            yAxes: [{
+                ticks: {
+                   
+                }
+            }]
+        }
+    }
+  });
+});
+
+
+
+$(document).ready(function(){
+  $("#myChart").click(function(){
+    alert("test");
+  });
+});
+</script>
+
+{% endblock scripts%}

@@ -3,10 +3,11 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.views.generic import ListView
-from .models import Gun, Bullet, TestResult
-from .forms import GunForm, BulletForm, ResultForm, VelocityForm
 from django.urls import reverse
 from django.http import HttpResponseRedirect, Http404
+from django.forms import inlineformset_factory, forms
+from .models import Gun, Bullet, TestResult, Velocity
+from .forms import GunForm, BulletForm, ResultForm, VelocityForm
 
 class HomeView(ListView):
     model = Gun
@@ -26,8 +27,9 @@ def gunview(request, gun_id):
         if gun.owner != request.user:
             raise Http404
 
-    context = {'guns': guns} 
+    context = {'guns': guns}  
     return render(request, 'gun.html', context)
+
 
 @login_required
 def AddGun(request):
@@ -66,20 +68,19 @@ def addbullet(request, gun_id):
 
 @login_required
 def add_data(request, bullet_id):
-    """Add a new result."""
+    """Add a new result.""" 
+    ResultFormSet = inlineformset_factory(Bullet, TestResult, fields=('charge', 'moa'), can_delete=False, extra=5)
     bullet = Bullet.objects.get(id=bullet_id)
     if request.method != 'POST':
         # No data submitted; create a blank form.
-        form = ResultForm()
+        formset = ResultFormSet()
     else:
         # POST data submitted; process data.
-        form = ResultForm(data=request.POST)
-        if form.is_valid():
-            new_data = form.save(commit=False)
-            new_data.bullet = bullet
-            new_data.save()
+        formset = ResultFormSet(request.POST, instance=bullet)
+        if formset.is_valid():
+            formset.save()
             return HttpResponseRedirect(reverse('gun', args=[bullet.gun.pk]))
-    context = {'form': form}
+    context = {'formset': formset}
     return render(request, 'add_data.html', context)
 
 @login_required
@@ -110,19 +111,18 @@ def delete_data(request, result_id):
 @login_required
 def add_velocity(request, result_id):
     """Add new velocity."""
+    VelocityFormSet = inlineformset_factory(TestResult, Velocity, fields=('shotnumber', 'velocity'), can_delete=False)
     result = TestResult.objects.get(id=result_id)
     if request.method != 'POST':
         # No data submitted; create a blank form.
-        form = VelocityForm()
+        formset = VelocityFormSet(instance=result)
     else:
         # POST data submitted; process data.
-        form = VelocityForm(data=request.POST)
-        if form.is_valid():
-            new_data = form.save(commit=False)
-            new_data.result = result
-            new_data.save()
+        formset = VelocityFormSet(request.POST, instance=result)
+        if formset.is_valid():
+            formset.save()
             return HttpResponseRedirect(reverse('edit_data', args=[result.pk]))
-    context = {'form': form}
+    context = {'formset': formset}
     return render(request, 'add_velocity.html', context)
 
 @login_required
@@ -153,6 +153,19 @@ def delete_bullet(request, bullet_id):
 @login_required
 def view_graph(request, bullet_id):
     """Show a single bullet graph."""
-    bullet = Bullet.objects.filter(id=bullet_id).prefetch_related('results')
-    context = {'bullet': bullet} 
+    bullet = Bullet.objects.filter(id=bullet_id).prefetch_related('results__velocity')
+    velocitylist = []
+    chargelist = []
+    moalist = []
+    for b in bullet: 
+        for result in b.results.all():
+            chargelist.append(result.charge)
+            moalist.append(result.moa)
+            total_avg = 0  
+            for velocity in result.velocity.all():
+                total_avg += velocity.velocity
+            total_avg /= 3
+            velocitylist.append(total_avg) 
+                             
+    context = {'bullet': bullet, 'velocitylist': velocitylist, 'chargelist':chargelist, 'moalist':moalist} 
     return render(request, 'graph.html', context)
