@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title%} Single Gun{% endblock title%}
+
+{% block scripts %}    
+
+{% endblock scripts %}
+
+{% block content %}
+  <div class="container" >
+  
+    {% for gun in guns %} {% comment %} gun title {% endcomment %}
+      <div>
+      <h1>{{gun.gun}}</h1>
+      <p>{{gun.owner}}</p>
+      <a class="btn btn-secondary btn-sm" href="{% url 'add_bullet' gun.pk%}">add bullet</a>
+      </div> <br/>
+      {% for bullet in gun.bullets.all %}
+        <div class="card" style="width: 40rem;">
+          <div class="card-body">
+          <div>
+            <h5 class="card-title">{{ bullet.bullet }} - {{ bullet.powder }} </h5> {% comment %} bullet powder and title {% endcomment %}  
+            <a class="btn btn-secondary btn-sm" href="{% url 'edit_bullet' bullet.pk %}" >Edit Bullet</a>
+            </div><br/>
+            <table class="table  table-bordered table-hover" >
+            
+              <thead>
+                <tr class="d-flex">
+                  <th class="col-2" scope="col">charge</th>
+                  <th class="col-2" scope="col">1</th>
+                  <th class="col-2" scope="col">2</th>
+                  <th class="col-2" scope="col">3</th>
+                  <th class="col-2" scope="col">MOA</th>
+                </tr>
+              </thead>
+        
+               {% for result in bullet.results.all %} <!-- result loop -->
+                
+                <tbody>
+                  <tr class="d-flex" >
+                    <td class="col-2">{{ result.charge }}</td>
+                    {% if result.velocity.all.exists%}
+                      {% for velocity in result.velocity.all %}
+                        <td class="col-2">{{ velocity.velocity }}</td>
+                      {% endfor %}
+                    {% else %}
+                      <td class="col-2">0</td>
+                      <td class="col-2">0</td>
+                      <td class="col-2">0</td>
+                    {%endif%} 
+                    <td class="col-2">{{ result.moa }}</td>
+                    <td class="col-2"><a class="btn btn-secondary btn-sm" href="{% url 'edit_data' result.pk%}">edit</a></td>
+                  </tr>
+                </tbody>
+                
+              {% endfor %}
+            </table>
+
+            <a class="btn btn-secondary btn-sm" href="{% url 'add_data' bullet.pk%}">add data</a> 
+            <a class="btn btn-secondary btn-sm" href="#">view pics</a>
+            <a class="btn btn-secondary btn-sm" href="{% url 'view_graph' bullet.pk%}">view graph</a>
+          </div>
+        </div><br/>
+      {% endfor %}
+    {% endfor %}
+  </div>
+
+
+{% endblock %}
+
+
