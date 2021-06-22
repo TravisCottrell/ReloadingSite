@@ -8,6 +8,8 @@ from django.http import HttpResponseRedirect, Http404
 from django.forms import inlineformset_factory, forms
 from .models import Gun, Bullet, TestResult, Velocity
 from .forms import GunForm, BulletForm, ResultForm, VelocityForm
+from django.http import JsonResponse
+from django.core import serializers
 
 class HomeView(ListView):
     model = Gun
@@ -18,6 +20,18 @@ class GunsView(ListView):
     model = Gun
     template_name = "guns.html"
 
+# @login_required
+# def gunview(request, gun_id):
+#     """Show a single gun and all its info."""
+#     guns = Gun.objects.filter(owner=request.user, id=gun_id).prefetch_related('bullets__results__velocity')
+#     # Make sure the gun belongs to the current user.
+#     for gun in guns:
+#         if gun.owner != request.user:
+#             raise Http404
+
+#     context = {'guns': guns}  
+#     return render(request, 'gun.html', context)
+
 @login_required
 def gunview(request, gun_id):
     """Show a single gun and all its info."""
@@ -26,10 +40,29 @@ def gunview(request, gun_id):
     for gun in guns:
         if gun.owner != request.user:
             raise Http404
-
-    context = {'guns': guns}  
+    
+    context = {'guns': guns, 'gun_id':gun_id}  
     return render(request, 'gun.html', context)
 
+def testsDataAPI(request, gun_id):
+    gun = Gun.objects.get(id=gun_id)
+    bullets = Bullet.objects.filter(gun=gun.pk)
+    
+    totalList = []
+    for bullet in bullets:
+        results = TestResult.objects.filter(bullet=bullet.pk)
+        resultList = []
+        for result in results:
+            velocities = Velocity.objects.filter(result=result.pk)
+            velList = []
+            for velocity in velocities:
+                velList.append({'vel_id':velocity.pk, 'vel':velocity.velocity})
+            
+            resultList.append({'result_id':result.pk ,'charge':result.charge, 'moa':result.moa, 'velocity':velList})
+
+        totalList.append({'gun':bullet.gun.gun, 'bullet_pk':bullet.pk, 'bullet':bullet.bullet, 'powder':bullet.powder, 'date_added':bullet.date_added, "results":resultList})
+        
+    return JsonResponse(totalList, safe=False)
 
 @login_required
 def AddGun(request):
@@ -124,6 +157,7 @@ def add_velocity(request, result_id):
             return HttpResponseRedirect(reverse('edit_data', args=[result.pk]))
     context = {'formset': formset}
     return render(request, 'add_velocity.html', context)
+    
 
 @login_required
 def edit_bullet(request, bullet_id):

@@ -17,8 +17,28 @@
 
     <title>{% block title%}{%endblock title%} </title>
   </head>
+<style>
+  body{
+    background-color: lightgrey;
+  }
+
+  .card{
+    background-color: lightgrey;
+  }
+
+  .hidden{
+      display:none;
+  }
+
+  .result{
+      max-width:80px; 
+  }
+
+</style>
+  
+
   <header>
-      <nav class="navbar navbar-expand-md navbar-dark bg-dark" >
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
       <div id="navbar" class="navbar-collapse collapse">
         <ul class="nav nav-tabs mr-auto">
           <li class="navbar-brand"><a href="{% url 'home' %}">Reloading Data</a></li>

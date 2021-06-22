@@ -1,70 +1,151 @@
 {% extends "base.html" %}
 {% block title%} Single Gun{% endblock title%}
 
-{% block scripts %}    
 
-{% endblock scripts %}
 
 {% block content %}
-  <div class="container" >
-  
-    {% for gun in guns %} {% comment %} gun title {% endcomment %}
-      <div>
+
+  <div class="container" id="bullet-table"><br/>
+    {% for gun in guns%}
       <h1>{{gun.gun}}</h1>
-      <p>{{gun.owner}}</p>
       <a class="btn btn-secondary btn-sm" href="{% url 'add_bullet' gun.pk%}">add bullet</a>
-      </div> <br/>
-      {% for bullet in gun.bullets.all %}
-        <div class="card" style="width: 40rem;">
-          <div class="card-body">
-          <div>
-            <h5 class="card-title">{{ bullet.bullet }} - {{ bullet.powder }} </h5> {% comment %} bullet powder and title {% endcomment %}  
-            <a class="btn btn-secondary btn-sm" href="{% url 'edit_bullet' bullet.pk %}" >Edit Bullet</a>
-            </div><br/>
-            <table class="table  table-bordered table-hover" >
-            
-              <thead>
-                <tr class="d-flex">
-                  <th class="col-2" scope="col">charge</th>
-                  <th class="col-2" scope="col">1</th>
-                  <th class="col-2" scope="col">2</th>
-                  <th class="col-2" scope="col">3</th>
-                  <th class="col-2" scope="col">MOA</th>
-                </tr>
-              </thead>
-        
-               {% for result in bullet.results.all %} <!-- result loop -->
-                
-                <tbody>
-                  <tr class="d-flex" >
-                    <td class="col-2">{{ result.charge }}</td>
-                    {% if result.velocity.all.exists%}
-                      {% for velocity in result.velocity.all %}
-                        <td class="col-2">{{ velocity.velocity }}</td>
-                      {% endfor %}
-                    {% else %}
-                      <td class="col-2">0</td>
-                      <td class="col-2">0</td>
-                      <td class="col-2">0</td>
-                    {%endif%} 
-                    <td class="col-2">{{ result.moa }}</td>
-                    <td class="col-2"><a class="btn btn-secondary btn-sm" href="{% url 'edit_data' result.pk%}">edit</a></td>
-                  </tr>
-                </tbody>
-                
-              {% endfor %}
-            </table>
-
-            <a class="btn btn-secondary btn-sm" href="{% url 'add_data' bullet.pk%}">add data</a> 
-            <a class="btn btn-secondary btn-sm" href="#">view pics</a>
-            <a class="btn btn-secondary btn-sm" href="{% url 'view_graph' bullet.pk%}">view graph</a>
-          </div>
-        </div><br/>
-      {% endfor %}
     {% endfor %}
-  </div>
+    
 
+  </div>
 
 {% endblock %}
 
+{% block scripts %}   
+<script>
+  var dataURL = '/testsapi/{{gun_id}}/' 
+  $.ajax({
+          method:'GET',
+          url:dataURL,
+          success:function(response){
+              tests = response
+              console.log(tests)
+              for (var bullet of tests){
+                addTable(bullet)
+              }
+          }
+  })
 
+  function addTable(bullet){
+    if(bullet.results.length <= 0){
+      bullet.results[0] = {'charge':0, 'moa':0, 'velocity':0}
+    }  
+    var table =  `<div class="card" style="width: 50rem;">
+                    <div class="card-body">
+                      <div>
+                        <h5 class="card-title">${bullet.bullet} </h5> 
+                      </div><br/>
+                      <table class="table table-bordered table-dark table-hover" >
+                        <thead>
+                          <tr class="d-flex">
+                            <th class="col" scope="col">charge</th>
+                            <th class="col" scope="col">1</th>
+                            <th class="col" scope="col">2</th>
+                            <th class="col" scope="col">3</th>
+                            <th class="col" scope="col">MOA</th>
+                            <th class="col-3" scope="col"></th>
+                          </tr>
+                        </thead>
+                        <tbody id="tests-table-${bullet.bullet_pk}">
+                      
+                        </tbody>
+                      </table>
+                    </div>
+                  </div><br/>
+                  `
+      
+    $('#bullet-table').append(table)
+    for (var result of bullet.results){
+      addRow(result, bullet.bullet_pk)
+    }
+  }
+
+  function addRow(result, bullet_pk){
+    //check if theres any velocity data
+    if (result.velocity.length > 0){
+      velocityrow = `
+                <td class="col" id="velocity1-${result.result_id}" contenteditable="true">${result.velocity[0].vel}</td>
+                <td class="col" id="velocity2-${result.result_id}" contenteditable="true">${result.velocity[1].vel}</td>
+                <td class="col" id="velocity3-${result.result_id}" contenteditable="true">${result.velocity[2].vel}</td>
+              `
+    }else{
+       velocityrow = `
+                    <td class="col" id="velocity1-${result.result_id}" contenteditable="true">0</td>
+                    <td class="col" id="velocity2-${result.result_id}" contenteditable="true">0</td>
+                    <td class="col" id="velocity3-${result.result_id}" contenteditable="true">0</td>
+                    `
+    }
+    //build html row with related data 
+    var row =  `<tr class="d-flex" scope="row" id="result-row-${result.result_id}">
+                  <td class="col" id="charge-${result.result_id}" contenteditable="true">${result.charge}</td>`
+                  +
+                  velocityrow
+                  +
+                  `
+                  <td class="col" id="moa-${result.result_id}" contenteditable="true">${result.moa}</td>
+                  <td class="col-3">
+                    <button class="btn btn-sm btn-danger" data-resultid=${result.result_id} id="delete-${result.result_id}">Delete</button>
+                    <button class="btn btn-sm btn-info"  data-resultid=${result.result_id} id="save-${result.result_id}">Save</button>
+                    
+                    <button class="btn btn-sm btn-danger hidden" data-resultid=${result.result_id} id="cancel-${result.result_id}">Cancel</button>
+                    <button class="btn btn-sm btn-primary hidden" data-resultid=${result.result_id} id="confirm-${result.result_id}">Confirm</button>
+                  </td>
+                </tr>
+              `
+    $(`#tests-table-${bullet_pk}`).append(row)
+
+    $(`#delete-${result.result_id}`).on('click', deleteResult)
+    $(`#cancel-${result.result_id}`).on('click', cancelDeletion)
+    $(`#confirm-${result.result_id}`).on('click', confirmDeletion)  
+  }
+
+
+ 
+
+
+  function deleteResult(){
+    var resultid = $(this).data('resultid')
+    
+    var deleteBtn = $(`#delete-${resultid}`)
+    var saveBtn = $(`#save-${resultid}`)
+    var cancelBtn = $(`#cancel-${resultid}`)
+    var confirmBtn = $(`#confirm-${resultid}`)
+
+    //toggle button visibilty
+    deleteBtn.addClass('hidden')
+    saveBtn.addClass('hidden')
+
+    cancelBtn.removeClass('hidden')
+    confirmBtn.removeClass('hidden')
+  }
+
+
+  function cancelDeletion(){
+    var resultid = $(this).data('resultid')
+    
+    var deleteBtn = $(`#delete-${resultid}`)
+    var saveBtn = $(`#save-${resultid}`)
+    var cancelBtn = $(`#cancel-${resultid}`)
+    var confirmBtn = $(`#confirm-${resultid}`)
+
+    //toggle button visibilty
+    deleteBtn.removeClass('hidden')
+    saveBtn.removeClass('hidden')
+
+    cancelBtn.addClass('hidden')
+    confirmBtn.addClass('hidden')
+  }
+
+  function confirmDeletion(){
+    var resultid = $(this).data('resultid')
+    var row = $(`#result-row-${resultid}`)
+    row.remove()  
+  }
+
+</script>
+{% endblock scripts %}

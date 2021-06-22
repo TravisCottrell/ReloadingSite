@@ -37,17 +37,17 @@
                 
                 <tbody>
                   <tr class="d-flex" >
-                    <td class="col-2">{{ result.charge }}</td>
+                    <td class="col-2" contenteditable>{{ result.charge }}</td>
                     {% if result.velocity.all.exists%}
                       {% for velocity in result.velocity.all %}
-                        <td class="col-2">{{ velocity.velocity }}</td>
+                        <td class="col-2" contenteditable>{{ velocity.velocity }}</td>
                       {% endfor %}
                     {% else %}
-                      <td class="col-2">0</td>
-                      <td class="col-2">0</td>
-                      <td class="col-2">0</td>
+                      <td class="col-2" contenteditable="true">0</td>
+                      <td class="col-2" contenteditable>0</td>
+                      <td class="col-2" contenteditable>0</td>
                     {%endif%} 
-                    <td class="col-2">{{ result.moa }}</td>
+                    <td class="col-2" contenteditable>{{ result.moa }}</td>
                     <td class="col-2"><a class="btn btn-secondary btn-sm" href="{% url 'edit_data' result.pk%}">edit</a></td>
                   </tr>
                 </tbody>
