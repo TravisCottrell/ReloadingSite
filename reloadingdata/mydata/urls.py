@@ -19,6 +19,6 @@ path('gun/edit_data/add_velocity/<int:result_id>/', views.add_velocity, name='ad
 path('gun/edit_bullet/<int:bullet_id>/', views.edit_bullet, name='edit_bullet'),
 path('gun/delete_bullet/<int:bullet_id>/', views.delete_bullet, name='delete_bullet'),
 path('gun/graph/<int:bullet_id>/', views.view_graph, name='view_graph'),
-path('testsapi/<int:gun_id>/', views.testsDataAPI),
+
 #path('add_gun/', AddGun.as_view(), name='add_gun'),
 ]

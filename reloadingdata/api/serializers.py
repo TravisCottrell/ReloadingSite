@@ -13,7 +13,7 @@ class TestResultSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TestResult
-        fields = ['charge', 'moa', 'date_added', 'velocity']
+        fields = ['pk', 'charge', 'moa', 'date_added', 'velocity']
 
 
 class BulletSerializer(serializers.ModelSerializer):
@@ -21,11 +21,11 @@ class BulletSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Bullet
-        fields = ['bullet', 'powder', 'date_added', 'results']
+        fields = ['pk', 'bullet', 'powder', 'date_added', 'results']
 
 class GunSerializer(serializers.ModelSerializer):
     bullets = BulletSerializer(many=True)
 
     class Meta:
         model = Gun
-        fields = ['gun', 'date_added', 'owner', 'bullets']
+        fields = ['pk', 'gun', 'date_added', 'owner', 'bullets']
