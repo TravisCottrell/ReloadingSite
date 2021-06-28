@@ -18,6 +18,25 @@
 
 {% block scripts %}   
 <script>
+
+  function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';');
+          for (let i = 0; i < cookies.length; i++) {
+              const cookie = cookies[i].trim();
+              // Does this cookie string begin with the name we want?
+              if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                  break;
+              }
+          }
+      }
+      return cookieValue;
+  }
+  const csrftoken = getCookie('csrftoken');
+
+
   var dataURL = '/api/gun/{{gun_id}}/' 
   $.ajax({
           method:'GET',
@@ -32,9 +51,6 @@
   })
 
   function addTable(bullet){
-    if(bullet.results.length <= 0){
-      bullet.results[0] = {'charge':0, 'moa':0, 'velocity':0}
-    }  
     var table =  `<div class="card" style="width: 50rem;">
                     <div class="card-body">
                       <div>
@@ -51,11 +67,12 @@
                             <th class="col-3" scope="col"></th>
                           </tr>
                         </thead>
-                        <tbody id="tests-table-${bullet.pk}">
+                        <tbody id="bullet-table-${bullet.pk}">
                       
                         </tbody>
                       </table>
                     </div>
+                    <button class="btn btn-sm btn-secondary" onClick="addResult(${bullet.pk})">add data</button> 
                   </div><br/>
                   `
       
@@ -63,6 +80,8 @@
     for (var result of bullet.results){
       addRow(result, bullet.pk)
     }
+
+    //$(`#add-data-${bullet.pk}`).on('click', addResult(bullet.pk))
   }
 
   function addRow(result, bullet_pk){
@@ -70,7 +89,7 @@
     if (result.velocity.length > 0){
       velocityrow = ``
       for(var velocity of result.velocity){
-        velocitycol = `<td class="col" id="velocity1-${result.pk}" contenteditable="true">${velocity.velocity}</td>`
+        velocitycol = `<td class="col" id="velocity1-${velocity.pk}" contenteditable="true">${velocity.velocity}</td>`
         velocityrow += velocitycol
       }
     }else{
@@ -90,23 +109,63 @@
                   `
                   <td class="col" id="moa-${result.pk}" contenteditable="true">${result.moa}</td>
                   <td class="col-3">
-                    <button class="btn btn-sm btn-danger" data-resultid=${result.pk} id="delete-${result.pk}">Delete</button>
-                    <button class="btn btn-sm btn-info"  data-resultid=${result.pk} id="save-${result.pk}">Save</button>
                     
-                    <button class="btn btn-sm btn-danger hidden" data-resultid=${result.pk} id="cancel-${result.pk}">Cancel</button>
-                    <button class="btn btn-sm btn-primary hidden" data-resultid=${result.pk} id="confirm-${result.pk}">Confirm</button>
+                      <button class="btn btn-sm btn-danger" data-resultid=${result.pk} id="delete-${result.pk}">Delete</button>
+                      <button class="btn btn-sm btn-info"  data-resultid=${result.pk} id="save-${result.pk}">Save</button>
+                      
+                      <button class="btn btn-sm btn-danger hidden" data-resultid=${result.pk} id="cancel-${result.pk}">Cancel</button>
+                      <button class="btn btn-sm btn-primary hidden" data-resultid=${result.pk} id="confirm-${result.pk}">Confirm</button>
+                    
                   </td>
                 </tr>
     `
-    $(`#tests-table-${bullet_pk}`).append(row)
+    $(`#bullet-table-${bullet_pk}`).append(row)
 
     $(`#delete-${result.pk}`).on('click', deleteResult)
+    $(`#save-${result.pk}`).on('click', saveResult)
     $(`#cancel-${result.pk}`).on('click', cancelDeletion)
     $(`#confirm-${result.pk}`).on('click', confirmDeletion)  
   }
 
 
- 
+  function addResult(bullet_pk){ 
+      url = `/api/data-create/${bullet_pk}/`
+      fetch(url, {
+				method:'POST',
+				headers:{
+					'Content-type':'application/json',
+					'X-CSRFToken':csrftoken,
+				},
+			}).then(function(response){
+				console.log('test create')
+			})
+  }
+
+  function saveResult(){ 
+    //get the rusult id/pk
+    var resultid = $(this ).data('resultid')
+    //get each td for the row
+    temp = []
+    $(`#result-row-${resultid} td`).each(function(){
+      temp.push($(this).html())
+    })
+    temp.pop()
+    console.log(temp)
+    data = {'charge':temp[0] , 'moa':temp[4]}
+    console.log(data)
+    url = `/api/data-update/${resultid}/`
+    fetch(url, {
+		  method:'PUT',
+				headers:{
+					'Content-type':'application/json',
+					'X-CSRFToken':csrftoken,
+				},
+        body:JSON.stringify(data)
+			}).then(function(response){
+				console.log('test update')
+			}) 
+    
+  }
 
 
   function deleteResult(){
@@ -146,6 +205,18 @@
     var resultid = $(this).data('resultid')
     var row = $(`#result-row-${resultid}`)
     row.remove()  
+    
+    //deleteResult(data)
+    var url = `/api/data-delete/${resultid}/`
+    fetch(url, {
+      method:'DELETE',
+      headers:{
+        'Content-type':'application/json',
+        'X-CSRFToken':csrftoken,
+      },
+    }).then(function(response){
+      console.log('test delete')
+    })
   }
 
 </script>

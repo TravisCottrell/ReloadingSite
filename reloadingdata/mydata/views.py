@@ -44,26 +44,6 @@ def gunview(request, gun_id):
     context = {'guns': guns, 'gun_id':gun_id}  
     return render(request, 'gun.html', context)
 
-def testsDataAPI(request, gun_id):
-    gun = Gun.objects.get(id=gun_id)
-    bullets = Bullet.objects.filter(gun=gun.pk)
-    
-    totalList = []
-    for bullet in bullets:
-        results = TestResult.objects.filter(bullet=bullet.pk)
-        resultList = []
-        for result in results:
-            velocities = Velocity.objects.filter(result=result.pk)
-            velList = []
-            for velocity in velocities:
-                velList.append({'vel_id':velocity.pk, 'vel':velocity.velocity})
-            
-            resultList.append({'result_id':result.pk ,'charge':result.charge, 'moa':result.moa, 'velocity':velList})
-
-        totalList.append({'gun':bullet.gun.gun, 'bullet_pk':bullet.pk, 'bullet':bullet.bullet, 'powder':bullet.powder, 'date_added':bullet.date_added, "results":resultList})
-        
-    return JsonResponse(totalList, safe=False)
-
 @login_required
 def AddGun(request):
     """Add a new gun."""
@@ -99,22 +79,38 @@ def addbullet(request, gun_id):
     context = {'form': form}
     return render(request, 'add_bullet.html', context)
 
+# @login_required
+# def add_data(request, bullet_id):
+#     """Add a new result.""" 
+#     ResultFormSet = inlineformset_factory(Bullet, TestResult, fields=('charge', 'moa'), can_delete=False, extra=5)
+#     bullet = Bullet.objects.get(id=bullet_id)
+#     if request.method != 'POST':
+#         # No data submitted; create a blank form.
+#         formset = ResultFormSet()
+#     else:
+#         # POST data submitted; process data.
+#         formset = ResultFormSet(request.POST, instance=bullet)
+#         if formset.is_valid():
+#             formset.save()
+#             return HttpResponseRedirect(reverse('gun', args=[bullet.gun.pk]))
+#     context = {'formset': formset}
+#     return render(request, 'add_data.html', context)
+
 @login_required
 def add_data(request, bullet_id):
-    """Add a new result.""" 
-    ResultFormSet = inlineformset_factory(Bullet, TestResult, fields=('charge', 'moa'), can_delete=False, extra=5)
-    bullet = Bullet.objects.get(id=bullet_id)
+    """Add a new result."""
+    gun = Gun.objects.get(id=bullet_id)
     if request.method != 'POST':
         # No data submitted; create a blank form.
-        formset = ResultFormSet()
-    else:
-        # POST data submitted; process data.
-        formset = ResultFormSet(request.POST, instance=bullet)
-        if formset.is_valid():
-            formset.save()
-            return HttpResponseRedirect(reverse('gun', args=[bullet.gun.pk]))
-    context = {'formset': formset}
-    return render(request, 'add_data.html', context)
+        resultform = ResultForm()
+        if resultform.is_valid():
+            new_result = resultform.save(commit=False)
+            new_result.gun = gun
+            new_result.charge = 0
+            new_result.moa = 0
+            new_result.save()
+    return render(request, 'gun.html')
+        
 
 @login_required
 def edit_data(request, result_id):

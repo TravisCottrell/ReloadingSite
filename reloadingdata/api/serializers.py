@@ -15,7 +15,6 @@ class TestResultSerializer(serializers.ModelSerializer):
         model = TestResult
         fields = ['pk', 'charge', 'moa', 'date_added', 'velocity']
 
-
 class BulletSerializer(serializers.ModelSerializer):
     results = TestResultSerializer(many=True)
 
