@@ -20,17 +20,6 @@ class GunsView(ListView):
     model = Gun
     template_name = "guns.html"
 
-# @login_required
-# def gunview(request, gun_id):
-#     """Show a single gun and all its info."""
-#     guns = Gun.objects.filter(owner=request.user, id=gun_id).prefetch_related('bullets__results__velocity')
-#     # Make sure the gun belongs to the current user.
-#     for gun in guns:
-#         if gun.owner != request.user:
-#             raise Http404
-
-#     context = {'guns': guns}  
-#     return render(request, 'gun.html', context)
 
 @login_required
 def gunview(request, gun_id):
@@ -78,82 +67,6 @@ def addbullet(request, gun_id):
             return HttpResponseRedirect(reverse('gun', args=[gun_id]))
     context = {'form': form}
     return render(request, 'add_bullet.html', context)
-
-# @login_required
-# def add_data(request, bullet_id):
-#     """Add a new result.""" 
-#     ResultFormSet = inlineformset_factory(Bullet, TestResult, fields=('charge', 'moa'), can_delete=False, extra=5)
-#     bullet = Bullet.objects.get(id=bullet_id)
-#     if request.method != 'POST':
-#         # No data submitted; create a blank form.
-#         formset = ResultFormSet()
-#     else:
-#         # POST data submitted; process data.
-#         formset = ResultFormSet(request.POST, instance=bullet)
-#         if formset.is_valid():
-#             formset.save()
-#             return HttpResponseRedirect(reverse('gun', args=[bullet.gun.pk]))
-#     context = {'formset': formset}
-#     return render(request, 'add_data.html', context)
-
-@login_required
-def add_data(request, bullet_id):
-    """Add a new result."""
-    gun = Gun.objects.get(id=bullet_id)
-    if request.method != 'POST':
-        # No data submitted; create a blank form.
-        resultform = ResultForm()
-        if resultform.is_valid():
-            new_result = resultform.save(commit=False)
-            new_result.gun = gun
-            new_result.charge = 0
-            new_result.moa = 0
-            new_result.save()
-    return render(request, 'gun.html')
-        
-
-@login_required
-def edit_data(request, result_id):
-    """Edit an existing result."""
-    result = TestResult.objects.get(id=result_id)
-    gun = result.bullet.gun
-    if request.method != 'POST':
-        # Initial request; pre-fill form with the current entry.
-        form = ResultForm(instance=result)
-    else:
-        # POST data submitted; process data.
-        form = ResultForm(instance=result, data=request.POST)
-        if form.is_valid():
-            form.save()
-            return HttpResponseRedirect(reverse('gun', args=[gun.id]))
-    context = {'result': result, 'gun': gun, 'form': form}
-    return render(request, 'edit_data.html', context)
-
-@login_required
-def delete_data(request, result_id):
-    """delete an existing result."""
-    result = TestResult.objects.get(id=result_id)
-    result.delete()
-    gun = result.bullet.gun
-    return HttpResponseRedirect(reverse('gun', args=[gun.id]))
-
-@login_required
-def add_velocity(request, result_id):
-    """Add new velocity."""
-    VelocityFormSet = inlineformset_factory(TestResult, Velocity, fields=('shotnumber', 'velocity'), can_delete=False)
-    result = TestResult.objects.get(id=result_id)
-    if request.method != 'POST':
-        # No data submitted; create a blank form.
-        formset = VelocityFormSet(instance=result)
-    else:
-        # POST data submitted; process data.
-        formset = VelocityFormSet(request.POST, instance=result)
-        if formset.is_valid():
-            formset.save()
-            return HttpResponseRedirect(reverse('edit_data', args=[result.pk]))
-    context = {'formset': formset}
-    return render(request, 'add_velocity.html', context)
-    
 
 @login_required
 def edit_bullet(request, bullet_id):

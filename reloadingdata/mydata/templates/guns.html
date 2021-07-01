@@ -2,14 +2,20 @@
 {% block title%}Guns List{% endblock title%}
 
 {% block content %}<br/>
-  <div class="container-fluid">
-  <h2>Guns</h2>
-    <a class="btn btn-secondary btn-sm" href="{% url 'add_gun' %}">add gun</a>
-    {% for gun in object_list %}
-      <ul >
-        <li><a href="{% url 'gun' gun.pk %}">{{gun.gun}}</a></li>
-      </ul>
-    {% endfor %}
+  <div class="container d-flex justify-content-center">
+    <div class="card " style="width: 40rem;">
+      <div class="card-body ">
+        <div>
+          <h2 class="card-title d-flex justify-content-center">Guns </h2>
+          <a class="btn btn-secondary btn-sm  d-flex justify-content-center" href="{% url 'add_gun' %}">add gun</a>
+        </div><br/>
+        {% for gun in object_list %}
+          <div class="list-group" style="list-style: none;">
+            <a class="list-group-item list-group-item-action d-flex justify-content-center"  href="{% url 'gun' gun.pk %}">{{gun.gun}}</a>
+          </div>
+      {% endfor %} 
+      </div>  
+    </div><br/>
   </div>
 {% endblock %}
 

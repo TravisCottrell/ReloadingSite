@@ -2,18 +2,19 @@
 {% block title%} Single Gun{% endblock title%}
 
 
-
+{% comment %} 
+  -need to actually rest api create 
+  -update the add result to make a new row 
+{% endcomment %}
 {% block content %}
-
-  <div class="container" id="bullet-table"><br/>
+  <div class="container" id="bullet-tables"><br/>
     {% for gun in guns%}
       <h1>{{gun.gun}}</h1>
-      <a class="btn btn-secondary btn-sm" href="{% url 'add_bullet' gun.pk%}">add bullet</a>
+      <div>
+        <a class="btn btn-secondary btn-sm" href="{% url 'add_bullet' gun.pk%}">add bullet</a>
+      </div><br/>
     {% endfor %}
-    
-
   </div>
-
 {% endblock %}
 
 {% block scripts %}   
@@ -36,7 +37,7 @@
   }
   const csrftoken = getCookie('csrftoken');
 
-
+  //get the bullets and related data for a specified gun and build the bullet tables 
   var dataURL = '/api/gun/{{gun_id}}/' 
   $.ajax({
           method:'GET',
@@ -50,13 +51,20 @@
           }
   })
 
+  //build a bullet table
   function addTable(bullet){
     var table =  `<div class="card" style="width: 50rem;">
                     <div class="card-body">
                       <div>
-                        <h5 class="card-title">${bullet.bullet} </h5> 
+                        <h5 class="card-title">${bullet.bullet} </h5>
+                        <p>${bullet.powder} </p>
                       </div><br/>
+                      <div>
+                        <a class="btn btn-secondary btn-sm" href="/gun/edit_bullet/${bullet.pk}/" >Edit Bullet</a>
+                      </div><br/>
+                      <button class="btn btn-sm btn-primary btn-block" onClick="addResult(${bullet.pk})">add data</button>
                       <table class="table table-bordered table-dark table-hover" >
+                       
                         <thead>
                           <tr class="d-flex">
                             <th class="col" scope="col">charge</th>
@@ -71,17 +79,18 @@
                       
                         </tbody>
                       </table>
+                      <a class="btn btn-sm btn-success"  href="/gun/graph/${bullet.pk}/">view graph</a> 
                     </div>
-                    <button class="btn btn-sm btn-secondary" onClick="addResult(${bullet.pk})">add data</button> 
+                     
                   </div><br/>
                   `
       
-    $('#bullet-table').append(table)
+    $('#bullet-tables').append(table)
     for (var result of bullet.results){
       addRow(result, bullet.pk)
     }
 
-    //$(`#add-data-${bullet.pk}`).on('click', addResult(bullet.pk))
+    
   }
 
   function addRow(result, bullet_pk){
@@ -92,14 +101,14 @@
         velocitycol = `<td class="col" id="velocity1-${velocity.pk}" contenteditable="true">${velocity.velocity}</td>`
         velocityrow += velocitycol
       }
-    }else{
+    }else{//if theres nothing in the velocity array, print 0's
        velocityrow = `
                     <td class="col" id="velocity1-${result.pk}" contenteditable="true">0</td>
                     <td class="col" id="velocity2-${result.pk}" contenteditable="true">0</td>
                     <td class="col" id="velocity3-${result.pk}" contenteditable="true">0</td>
                     `
     }
-    //build html row with related data 
+    //build html row with related data. (charge| velocity| velocity| velocity| moa| buttons)
     var row =  `
                 <tr class="d-flex" scope="row" id="result-row-${result.pk}">
                   <td class="col" id="charge-${result.pk}" contenteditable="true">${result.charge}</td>`
@@ -127,7 +136,7 @@
     $(`#confirm-${result.pk}`).on('click', confirmDeletion)  
   }
 
-
+  //create a blank result and add it to the database
   function addResult(bullet_pk){ 
       url = `/api/data-create/${bullet_pk}/`
       fetch(url, {
@@ -136,11 +145,15 @@
 					'Content-type':'application/json',
 					'X-CSRFToken':csrftoken,
 				},
-			}).then(function(response){
-				console.log('test create')
 			})
+      .then(function(res){ return res.json(); })
+      .then(function(data){ 
+        addRow(data, bullet_pk) 
+      })
+      
   }
 
+  //save the updated row when save button is pressed
   function saveResult(){ 
     //get the rusult id/pk
     var resultid = $(this ).data('resultid')
@@ -149,10 +162,18 @@
     $(`#result-row-${resultid} td`).each(function(){
       temp.push($(this).html())
     })
+    //pop button <td>
     temp.pop()
-    console.log(temp)
-    data = {'charge':temp[0] , 'moa':temp[4]}
-    console.log(data)
+    
+    data = {'charge':temp[0], 
+            'moa':temp[4], 
+            'velocity':[
+                {'velocity':temp[1]}, 
+                {'velocity':temp[2]}, 
+                {'velocity':temp[3]},
+            ]
+          }
+    
     url = `/api/data-update/${resultid}/`
     fetch(url, {
 		  method:'PUT',
@@ -167,7 +188,7 @@
     
   }
 
-
+  //toggles the buttons when delete is pressed to hide delete/save and show cancel/confirm
   function deleteResult(){
     var resultid = $(this).data('resultid')
     
