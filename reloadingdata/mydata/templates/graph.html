@@ -6,108 +6,90 @@
     {% for b in bullet %}
       <h1>{{b.bullet}} - {{b.powder}}</h1>                                 
     {% endfor%}
-    <canvas id="myChart" ></canvas> 
-    <canvas id="myChart2" ></canvas> 
+    <div>
+        <canvas id="myChart"></canvas>
+    </div>
+    
 </div>
-{% endblock %}
+{% endblock content%}
+{% block scripts %}
 
-{% block scripts%}
 <script>
-$(document).ready(function(){
-  var ctx = document.getElementById('myChart').getContext('2d');
-  var myChart = new Chart(ctx, {
-      type: 'line',
-      data: { 
-          labels: [
-                    {% for charge in chargelist %}
-                        '{{charge}}',
-                    {% endfor%}
-                ],  
-          datasets: [{
-              label: 'MOA',
-              data: [
-                    {% for moa in moalist %}
-                        '{{moa}}', 
-                    {% endfor%}
-              ],
-              backgroundColor: [
-                  'rgba(255, 99, 132, 0.2)',
-                  'rgba(54, 162, 235, 0.2)',
-                  'rgba(255, 206, 86, 0.2)',
-                  'rgba(75, 192, 192, 0.2)',
-                  'rgba(153, 102, 255, 0.2)',
-                  'rgba(255, 159, 64, 0.2)'
-              ],
-              borderColor: [
-                  'rgba(255, 99, 132, 1)',
-                  'rgba(54, 162, 235, 1)',
-                  'rgba(255, 206, 86, 1)',
-                  'rgba(75, 192, 192, 1)',
-                  'rgba(153, 102, 255, 1)',
-                  'rgba(255, 159, 64, 1)'
-              ],
-              borderWidth: 1
-          }]
-      },
-    options: {
-        scales: {
-            yAxes: [{
-                ticks: {
-                    beginAtZero: true
-                }
-            }]
-        }
+ // <block:setup:1>
+const labels = [
+                {% for charge in chargelist %}
+                    '{{charge}}',
+                {% endfor%}
+];
+const data = {
+  labels: labels,
+  datasets: [
+    {
+        label: 'MOA',
+        backgroundColor: 'rgb(211, 211, 211, 0)',
+        borderColor: 'rgb(255, 99, 132)',
+        data: [
+                {% for moa in moalist %}
+                    '{{moa}}', 
+                {% endfor%}
+        ],
+         yAxisID: 'one'
+    },
+      {
+        label: 'Velocity',
+        backgroundColor: 'rgb(211, 211, 211, 0)',
+        borderColor: 'rgb(128, 0, 255)',
+        data: [
+                {% for velocity in velocitylist %}
+                    '{{velocity}}',   
+                {% endfor%}
+        ],
+         yAxisID: 'two'
+        
     }
-  });
-});
+  ]
+};
+// </block:setup>
 
-$(document).ready(function(){
-  var ctx = document.getElementById('myChart2').getContext('2d');
-  var myChart = new Chart(ctx, {
-      type: 'line',
-      data: { 
-          labels: [
-                    {% for charge in chargelist %}
-                        '{{charge}}',
-                    {% endfor%}
-                ],  
-          datasets: [{
-              label: 'Velocity',
-              data: [
-                    {% for velocity in velocitylist %}
-                        '{{velocity}}',   
-                    {% endfor%}
-              ],
-              backgroundColor: [
-                  'rgba(255, 99, 132, 0.2)',
-                  'rgba(54, 162, 235, 0.2)',
-                  'rgba(255, 206, 86, 0.2)',
-                  'rgba(75, 192, 192, 0.2)',
-                  'rgba(153, 102, 255, 0.2)',
-                  'rgba(255, 159, 64, 0.2)'
-              ],
-              borderColor: [
-                  'rgba(255, 99, 132, 1)',
-                  'rgba(54, 162, 235, 1)',
-                  'rgba(255, 206, 86, 1)',
-                  'rgba(75, 192, 192, 1)',
-                  'rgba(153, 102, 255, 1)',
-                  'rgba(255, 159, 64, 1)'
-              ],
-              borderWidth: 1
-          }]
-      },
-    options: {
-        scales: {
-            yAxes: [{
-                ticks: {
-                   
-                }
-            }]
-        }
-    }
-  });
-});
+// <block:config:0>
+const config = {
+  type: 'line',
+  data: data,
+  options: {
+    responsive: true,
+    
+    stacked: false,
+    scales: {
+        yAxes : [
+        {
+            type: 'linear', // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+            display: true,
+            position: 'left',
+            id: 'one',
+            ticks: {beginAtZero: true}
+        },
+        {
+            type: 'linear', // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+            display: true,
+            position: 'left',
+            id: 'two',
+            
+            // grid line settings
+            gridLines: {
+                drawOnChartArea: false, // only want the grid lines for one axis to show up
+            },
+        },
+        
+    ]}
+  },
+};
+// </block:config>
 
+  var myChart = new Chart(
+    document.getElementById('myChart'),
+    config
+  );
 </script>
-{% endblock scripts%}
+{% endblock scripts %}
+
+
