@@ -27,7 +27,7 @@ const data = {
     {
         label: 'MOA',
         backgroundColor: 'rgb(211, 211, 211, 0)',
-        borderColor: 'rgb(255, 99, 132)',
+        borderColor: 'rgb(224, 38, 38)',
         data: [
                 {% for moa in moalist %}
                     '{{moa}}', 
@@ -41,7 +41,9 @@ const data = {
         borderColor: 'rgb(128, 0, 255)',
         data: [
                 {% for velocity in velocitylist %}
-                    '{{velocity}}',   
+                    {%if velocity != 0 %}
+                        '{{velocity}}',
+                    {% endif %}   
                 {% endfor%}
         ],
          yAxisID: 'two'
