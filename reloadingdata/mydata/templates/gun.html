@@ -7,13 +7,23 @@
   -update the add result to make a new row 
 {% endcomment %}
 {% block content %}
+  <div class="container">
+    <nav aria-label="breadcrumb" >
+      <ol class="breadcrumb" >
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'guns' %}">Gun List</a></li>
+        <li class="breadcrumb-item active">Gun</li>
+      </ol>
+    </nav>
+  </div>
+
   <div class="container" id="bullet-tables"><br/>
-    {% for gun in guns%}
+    
       <h1>{{gun.gun}}</h1>
       <div>
         <a class="btn btn-secondary btn-sm" href="{% url 'add_bullet' gun.pk%}">add bullet</a>
       </div><br/>
-    {% endfor %}
+    
   </div>
 {% endblock %}
 
@@ -38,22 +48,24 @@
   const csrftoken = getCookie('csrftoken');
 
   //get the bullets and related data for a specified gun and build the bullet tables 
-  var dataURL = '/api/gun/{{gun_id}}/' 
+  var dataURL = '/api/gun/{{gun.pk}}/' 
   $.ajax({
           method:'GET',
           url:dataURL,
           success:function(response){
-              gun = response
-              console.log(gun)
-              for (var bullet of gun.bullets){
-                addTable(bullet)
+              
+              console.log(response)
+              for (var gun of response){
+                for (var bullet of gun.bullets){
+                  addTable(bullet)
+                }
               }
           }
   })
 
   //build a bullet table
   function addTable(bullet){
-    var table =  `<div class="card" style="width: 50rem;">
+    var table =  `<div class="card" style="width: 55rem;">
                     <div class="card-body">
                       <div>
                         <h3 class="card-title">${bullet.bullet} </h3>
@@ -158,19 +170,19 @@
     //get the rusult id/pk
     var resultid = $(this ).data('resultid')
     //get each td for the row
-    temp = []
+    newresults = []
     $(`#result-row-${resultid} td`).each(function(){
-      temp.push($(this).html())
+      newresults.push($(this).html())
     })
     //pop button <td>
-    temp.pop()
+    newresults.pop()
     
-    data = {'charge':temp[0], 
-            'moa':temp[4], 
+    data = {'charge':newresults[0], 
+            'moa':newresults[4], 
             'velocity':[
-                {'velocity':temp[1]}, 
-                {'velocity':temp[2]}, 
-                {'velocity':temp[3]},
+                {'velocity':newresults[1]}, 
+                {'velocity':newresults[2]}, 
+                {'velocity':newresults[3]},
             ]
           }
     

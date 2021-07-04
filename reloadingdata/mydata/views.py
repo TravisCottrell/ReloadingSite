@@ -1,4 +1,5 @@
 
+from django.db.models.query import EmptyQuerySet
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -24,13 +25,14 @@ class GunsView(ListView):
 @login_required
 def gunview(request, gun_id):
     """Show a single gun and all its info."""
-    guns = Gun.objects.filter(owner=request.user, id=gun_id).prefetch_related('bullets__results__velocity')
+    #guns = Gun.objects.filter(owner=request.user, id=gun_id).prefetch_related('bullets__results__velocity')
+    gun = Gun.objects.get(pk=gun_id)
     # Make sure the gun belongs to the current user.
-    for gun in guns:
-        if gun.owner != request.user:
-            raise Http404
     
-    context = {'guns': guns, 'gun_id':gun_id}  
+    if gun.owner != request.user:
+        raise Http404
+    
+    context = {'gun': gun}  
     return render(request, 'gun.html', context)
 
 @login_required
@@ -65,7 +67,7 @@ def addbullet(request, gun_id):
             new_bullet.gun = gun
             new_bullet.save()
             return HttpResponseRedirect(reverse('gun', args=[gun_id]))
-    context = {'form': form}
+    context = {'form': form,'gun':gun}
     return render(request, 'add_bullet.html', context)
 
 @login_required
@@ -96,11 +98,13 @@ def delete_bullet(request, bullet_id):
 @login_required
 def view_graph(request, bullet_id):
     """Show a single bullet graph."""
+    
     bullet = Bullet.objects.filter(id=bullet_id).prefetch_related('results__velocity')
     velocitylist = []
     chargelist = []
     moalist = []
     for b in bullet: 
+        gun = b.gun
         for result in b.results.all():
             chargelist.append(result.charge)
             moalist.append(result.moa)
@@ -109,6 +113,10 @@ def view_graph(request, bullet_id):
                 total_avg += velocity.velocity
             total_avg /= 3
             velocitylist.append(total_avg) 
+
+    #send no data for velocitylist if the values are 0
+    if velocitylist[0] == 0:
+        velocitylist.clear() 
                              
-    context = {'bullet': bullet, 'velocitylist': velocitylist, 'chargelist':chargelist, 'moalist':moalist} 
+    context = {'gun': gun, 'bullet': bullet, 'velocitylist': velocitylist, 'chargelist':chargelist, 'moalist':moalist} 
     return render(request, 'graph.html', context)

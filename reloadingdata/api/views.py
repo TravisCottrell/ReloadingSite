@@ -36,12 +36,14 @@ def gun_detail(request, pk):
     Retrieve, update or delete a gun.
     """
     try:
-        gun = Gun.objects.get(owner=request.user, id=pk)
+        
+        gun = Gun.objects.filter(owner=request.user, id=pk).prefetch_related('bullets__results__velocity')
+        #gun = Gun.objects.get(owner=request.user, id=pk)
     except Gun.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
-        serializer = GunSerializer(gun)
+        serializer = GunSerializer(gun, many=True)
         return Response(serializer.data)
 
     elif request.method == 'PUT':

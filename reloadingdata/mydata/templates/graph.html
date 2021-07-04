@@ -2,6 +2,17 @@
 {% block title%}Graph{% endblock title%}
 
 {% block content %}
+  <div class="container">
+    <nav aria-label="breadcrumb" >
+      <ol class="breadcrumb" >
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'guns' %}">Gun List</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'gun' gun.pk %}">{{gun.gun}}</a></li>
+        <li class="breadcrumb-item active">Graph</li>
+      </ol>
+    </nav>
+  </div>
+
 <div class="container">
     {% for b in bullet %}
       <h1>{{b.bullet}} - {{b.powder}}</h1>                                 
@@ -9,44 +20,29 @@
     <div>
         <canvas id="myChart"></canvas>
     </div>
-    
 </div>
 {% endblock content%}
-{% block scripts %}
 
+{% block scripts %}
 <script>
  // <block:setup:1>
-const labels = [
-                {% for charge in chargelist %}
-                    '{{charge}}',
-                {% endfor%}
-];
+const labels = {{chargelist}}; //django view context
 const data = {
   labels: labels,
   datasets: [
     {
-        label: 'MOA',
-        backgroundColor: 'rgb(211, 211, 211, 0)',
-        borderColor: 'rgb(224, 38, 38)',
-        data: [
-                {% for moa in moalist %}
-                    '{{moa}}', 
-                {% endfor%}
-        ],
-         yAxisID: 'one'
+      label: 'MOA',
+      backgroundColor: 'rgb(211, 211, 211, 0)',
+      borderColor: 'rgb(224, 38, 38)',
+      data: {{moalist}},//django view context
+      yAxisID: 'one'
     },
       {
         label: 'Velocity',
         backgroundColor: 'rgb(211, 211, 211, 0)',
         borderColor: 'rgb(128, 0, 255)',
-        data: [
-                {% for velocity in velocitylist %}
-                    {%if velocity != 0 %}
-                        '{{velocity}}',
-                    {% endif %}   
-                {% endfor%}
-        ],
-         yAxisID: 'two'
+        data: {{velocitylist}},
+        yAxisID: 'two'
         
     }
   ]
@@ -87,10 +83,10 @@ const config = {
 };
 // </block:config>
 
-  var myChart = new Chart(
-    document.getElementById('myChart'),
-    config
-  );
+var myChart = new Chart(
+  document.getElementById('myChart'),
+  config
+);
 </script>
 {% endblock scripts %}
 

@@ -2,6 +2,15 @@
 {% block title%}Guns List{% endblock title%}
 
 {% block content %}<br/>
+  <div class="container">
+    <nav aria-label="breadcrumb" >
+      <ol class="breadcrumb" >
+        <li class="breadcrumb-item"> <a href="{% url 'home' %}">Home</a></li>
+        <li class="breadcrumb-item active" >Gun List</li>
+      </ol>
+    </nav>
+  </div>
+
   <div class="container d-flex justify-content-center">
     <div class="card " style="width: 40rem;">
       <div class="card-body ">

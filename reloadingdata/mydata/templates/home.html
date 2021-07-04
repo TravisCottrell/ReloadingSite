@@ -1,9 +1,30 @@
 {% extends "base.html" %}
 {% block title%}Home{% endblock title%}
 
-{% block content %}
+{% block content %}<br/>
 <div class="container">
-<p>reloading data tracker.</p>
+  <nav aria-label="breadcrumb" >
+    <ol class="breadcrumb" >
+      <li class="breadcrumb-item active" >Home</li>
+    </ol>
+  </nav>
+</div>
+
+<div class="container d-flex justify-content-center">
+  <div class="card " style="width: 50rem;">
+    <div class="card-body ">
+    <h3 class="card-title d-flex justify-content-center"> site features</h3>
+      <ul>
+          <li>Easily enter and edit reloading data</li> 
+          <li>Javascript DOM manipulation</li>
+          <li>Dynamic html table</li>
+          <li>Editable html table</li>
+          <li>Uses REST api</li>
+          <li>Uses Chart.js</li>
+          <li>Styled with Bootstrap</li>
+      </ul>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
