@@ -4,7 +4,7 @@ from rest_framework import serializers
 class VelocitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Velocity
-        fields = '__all__'
+        fields =  ['pk', 'shotnumber', 'velocity', 'date_added']
 
 
 class TestResultSerializer(serializers.ModelSerializer):
@@ -43,7 +43,7 @@ class BulletSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Bullet
-        fields = ['pk', 'bullet', 'powder', 'date_added', 'results']
+        fields = ['pk', 'bullet', 'powder', 'primer', 'coal', 'landTotal', 'landOffset', 'date_added', 'results']
 
 
 class GunSerializer(serializers.ModelSerializer):

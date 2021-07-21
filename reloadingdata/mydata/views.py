@@ -1,16 +1,12 @@
-
-from django.db.models.query import EmptyQuerySet
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
 from django.views.generic import ListView
 from django.urls import reverse
 from django.http import HttpResponseRedirect, Http404
-from django.forms import inlineformset_factory, forms
-from .models import Gun, Bullet, TestResult, Velocity
-from .forms import GunForm, BulletForm, ResultForm, VelocityForm
-from django.http import JsonResponse
-from django.core import serializers
+
+from .models import Gun, Bullet
+from .forms import GunForm, BulletForm
+
 
 class HomeView(ListView):
     model = Gun

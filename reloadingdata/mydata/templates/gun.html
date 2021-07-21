@@ -3,8 +3,13 @@
 
 
 {% comment %} 
-  -need to actually rest api create 
-  -update the add result to make a new row 
+  TO DO:
+  -add c.o.l to bullet model
+  -add 0 of land length to bullet model
+  -add land length offset
+  -add primer to bullet model
+  
+  -add ability to upload photos related to the data 
 {% endcomment %}
 {% block content %}
   <div class="container">
@@ -53,23 +58,44 @@
           method:'GET',
           url:dataURL,
           success:function(response){
-              
-              console.log(response)
-              for (var gun of response){
-                for (var bullet of gun.bullets){
-                  addTable(bullet)
-                }
-              }
+            gun = response[0]
+            console.log(gun)
+            for (var bullet of gun.bullets){
+              addTable(bullet)
+            }
           }
   })
 
   //build a bullet table
   function addTable(bullet){
-    var table =  `<div class="card" style="width: 55rem;">
+      var table =  `<div class="card" style="width: 55rem;">
                     <div class="card-body">
-                      <div>
-                        <h3 class="card-title">${bullet.bullet} </h3>
-                        <p>${bullet.powder} </p>
+                      <div class="container-fluid">
+                        <div class="row border border-secondary">
+                        <div class="col-md ">
+                          <h3 class="card-title">${bullet.bullet}</h3>
+                        </div>
+                        </div>
+                        <div class="row border border-secondary">
+                          <div class="col-md-3 border-right border-secondary">
+                            <p>Powder: ${bullet.powder}</p>
+                          </div>
+                          <div class="col-md-6 border-right border-secondary">
+                            <p>Primer: ${bullet.primer}</p>
+                          </div>
+                          <div class="col-md border-right border-secondary">
+                            <p>O.A.C.L: ${bullet.coal}"</p>
+                          </div>
+                        </div>
+                        <div class="row border border-secondary">
+                          <div class="col-md-auto border-right border-secondary">
+                            <p>Land Length: ${bullet.landTotal}"</p>
+                          </div>
+                          <div class="col-md-auto border-right border-secondary">
+                            <p>Land Offset: ${bullet.landOffset}"</p>
+                          </div>
+                        </div>
+
                       </div><br/>
                       <div>
                         <a class="btn btn-secondary btn-sm" href="/gun/edit_bullet/${bullet.pk}/" >Edit Bullet</a>
@@ -80,10 +106,12 @@
                         <thead>
                           <tr class="d-flex">
                             <th class="col" scope="col">charge</th>
+                            <th class="col" scope="col">MOA</th>
                             <th class="col" scope="col">1</th>
                             <th class="col" scope="col">2</th>
                             <th class="col" scope="col">3</th>
-                            <th class="col" scope="col">MOA</th>
+                            <th class="col" scope="col">SD</th>
+                            <th class="col" scope="col">ES</th>
                             <th class="col-3" scope="col"></th>
                           </tr>
                         </thead>
@@ -96,7 +124,8 @@
                      
                   </div><br/>
                   `
-      
+    
+
     $('#bullet-tables').append(table)
     for (var result of bullet.results){
       addRow(result, bullet.pk)
@@ -105,41 +134,76 @@
     
   }
 
+
   function addRow(result, bullet_pk){
-    //check if theres any velocity data
-    if (result.velocity.length > 0){
-      velocityrow = ``
+      var velocityrow = ``;
+      var low = 10000;
+      var high = 0;
+      var sum = 0;
       for(var velocity of result.velocity){
-        velocitycol = `<td class="col" id="velocity1-${velocity.pk}" contenteditable="true">${velocity.velocity}</td>`
+        
+        var velocitycol = `<td class="col" id="velocity-${velocity.pk}" contenteditable="true">${velocity.velocity}</td>`
         velocityrow += velocitycol
+        
+        //find lowest velocity
+        if(velocity.velocity < low){
+          low = velocity.velocity;
+        } 
+
+         if(velocity.velocity > high){
+          high = velocity.velocity;
+        } 
+
+        //find the sum of all the velocities
+        sum += velocity.velocity;
       }
-    }else{//if theres nothing in the velocity array, print 0's
-       velocityrow = `
-                    <td class="col" id="velocity1-${result.pk}" contenteditable="true">0</td>
-                    <td class="col" id="velocity2-${result.pk}" contenteditable="true">0</td>
-                    <td class="col" id="velocity3-${result.pk}" contenteditable="true">0</td>
-                    `
-    }
-    //build html row with related data. (charge| velocity| velocity| velocity| moa| buttons)
-    var row =  `
-                <tr class="d-flex" scope="row" id="result-row-${result.pk}">
-                  <td class="col" id="charge-${result.pk}" contenteditable="true">${result.charge}</td>`
+
+
+      /*
+      -calulate and add sd(standard deviation),
+        find the mean 
+        ((v1-mean)^2+(v2-mean)^2+(v3-mean)^2)/(n-1) = variance
+        square root(variance)
+      */
+      mean = sum/result.velocity.length;
+      var variance = 0;
+      for(var velocity of result.velocity){
+        temp = velocity.velocity - mean;
+        variance += temp**2;
+        
+      }
+      variance /= result.velocity.length - 1; 
+      
+      //find the square root of the variance then round it
+      var sd = Math.round(Math.sqrt(variance));
+
+      
+      var es = high - low;
+      //build html row with related data. table row layout: (charge | moa | velocity1| velocity2| velocity3| sd | es | buttons)
+      var row = `
+                  <tr class="d-flex" scope="row" id="result-row-${result.pk}">
+                    <td class="col" id="charge-${result.pk}" contenteditable="true">${result.charge}</td>
+                    <td class="col" id="moa-${result.pk}" contenteditable="true">${result.moa}</td>
+                `
                   +
                   velocityrow
                   +
-                  `
-                  <td class="col" id="moa-${result.pk}" contenteditable="true">${result.moa}</td>
-                  <td class="col-3">
-                    
-                      <button class="btn btn-sm btn-danger" data-resultid=${result.pk} id="delete-${result.pk}">Delete</button>
-                      <button class="btn btn-sm btn-info"  data-resultid=${result.pk} id="save-${result.pk}">Save</button>
+                `
+                    <td class="col" id="moa-${result.pk}" contenteditable="false">${sd}</td>
+                    <td class="col" id="moa-${result.pk}" contenteditable="false">${es}</td>
+                    <td class="col-3">
                       
-                      <button class="btn btn-sm btn-danger hidden" data-resultid=${result.pk} id="cancel-${result.pk}">Cancel</button>
-                      <button class="btn btn-sm btn-primary hidden" data-resultid=${result.pk} id="confirm-${result.pk}">Confirm</button>
-                    
-                  </td>
-                </tr>
-    `
+                        <button class="btn btn-sm btn-danger" data-resultid=${result.pk} id="delete-${result.pk}">Delete</button>
+                        <button class="btn btn-sm btn-info"  data-resultid=${result.pk} id="save-${result.pk}">Save</button>
+                        
+                        <button class="btn btn-sm btn-danger hidden" data-resultid=${result.pk} id="cancel-${result.pk}">Cancel</button>
+                        <button class="btn btn-sm btn-primary hidden" data-resultid=${result.pk} id="confirm-${result.pk}">Confirm</button>
+                      
+                    </td>
+                  </tr>
+                `
+    
+
     $(`#bullet-table-${bullet_pk}`).append(row)
 
     $(`#delete-${result.pk}`).on('click', deleteResult)
@@ -167,22 +231,24 @@
 
   //save the updated row when save button is pressed
   function saveResult(){ 
-    //get the rusult id/pk
+    //get the result id/pk
     var resultid = $(this ).data('resultid')
     //get each td for the row
     newresults = []
     $(`#result-row-${resultid} td`).each(function(){
       newresults.push($(this).html())
     })
-    //pop button <td>
+    //pops the uneeded button,es, and sd <td> in the table row
+    newresults.pop()
+    newresults.pop()
     newresults.pop()
     
     data = {'charge':newresults[0], 
-            'moa':newresults[4], 
+            'moa':newresults[1], 
             'velocity':[
-                {'velocity':newresults[1]}, 
                 {'velocity':newresults[2]}, 
-                {'velocity':newresults[3]},
+                {'velocity':newresults[3]}, 
+                {'velocity':newresults[4]},
             ]
           }
     

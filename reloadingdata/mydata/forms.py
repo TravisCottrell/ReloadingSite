@@ -15,12 +15,16 @@ class GunForm(forms.ModelForm):
 class BulletForm(forms.ModelForm):
     class Meta:
         model = Bullet
-        fields = ( 'bullet', 'powder')
+        fields = ( 'bullet', 'powder', 'primer' ,'coal' ,'landTotal' ,'landOffset')
 
         widgets ={
             
             'bullet': forms.TextInput(attrs={'class': 'form-control'}),
             'powder': forms.TextInput(attrs={'class': 'form-control'}),
+            'primer': forms.TextInput(attrs={'class': 'form-control'}),
+            'coal': forms.NumberInput(attrs={'class': 'form-control'}),
+            'landTotal': forms.NumberInput(attrs={'class': 'form-control'}),
+            'landOffset': forms.NumberInput(attrs={'class': 'form-control'}),
         }
 
 class ResultForm(forms.ModelForm):

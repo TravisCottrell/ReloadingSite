@@ -16,10 +16,14 @@ class Gun(models.Model):
     
 
 class Bullet(models.Model):
-    """Something specific learned about a topic."""
+    """Specific bullet related to a gun."""
     gun = models.ForeignKey(Gun, on_delete=models.CASCADE, related_name="bullets")
     bullet = models.CharField(max_length=50)
     powder = models.CharField(max_length=50)
+    primer = models.CharField(max_length=50, null=True, blank=True)
+    coal = models.FloatField(null=True,blank=True)
+    landTotal = models.FloatField(null=True,blank=True)
+    landOffset = models.FloatField(null=True,blank=True)
     date_added = models.DateTimeField(auto_now_add=True)
  
     def __str__(self):
